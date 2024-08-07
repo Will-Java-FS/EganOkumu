@@ -30,4 +30,13 @@ public class Cat {
     @JoinColumn(name = "u_id")
     private User owner;
 
+    @Override
+    public String toString() {
+        return "Cat{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", color='" + color + '\'' +
+                ", owner=" + owner +
+                '}';
+    }
 }

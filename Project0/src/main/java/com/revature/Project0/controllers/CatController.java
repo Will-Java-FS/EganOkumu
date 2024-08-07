@@ -2,7 +2,8 @@ package com.revature.Project0.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.revature.Project0.models.Cat;
-import com.revature.Project0.services.CatService;
+import com.revature.Project0.services.CatServiceImpl;
+import com.revature.Project0.services.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,13 @@ import java.util.List;
 @CrossOrigin
 public class CatController {
 
-    CatService cs;
+    CatServiceImpl cs;
+    UserServiceImpl us;
     ObjectMapper mp;
     @Autowired //Constructor Injection
-    public CatController(CatService cs, ObjectMapper mp) {
+    public CatController(CatServiceImpl cs, UserServiceImpl us, ObjectMapper mp) {
         this.cs = cs;
+        this.us = us;
         this.mp = mp;
     }
 
@@ -52,22 +55,27 @@ public class CatController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<String> updateCat(@PathVariable("id") Integer id, @RequestBody Cat newCat){
-        if(cs.getCat(id) != null){
+        if(cs.idExists(id) == 0)
+            return ResponseEntity.status(404).body("Cat " + id + " doesn't exist!");
+        else {
             Integer update = cs.updateCat(id,newCat);
             return update == 1
                     ? ResponseEntity.status(200).body("Update Successful")
                     : ResponseEntity.status(500).body("Update FAILED");
         }
-        else {
-            return ResponseEntity.status(404).body("Cat does not exist!");
-        }
     }
 
     @PostMapping("/{userId}")
-    public ResponseEntity<Cat> addCat(@PathVariable int userId, @RequestBody Cat a) {
+    public ResponseEntity<String> addCat(@PathVariable int userId, @RequestBody Cat a) throws JsonProcessingException {
         // todo: check that userId is valid user
-        a = cs.addCat(userId, a);
-        return new ResponseEntity<>(a, HttpStatus.OK);
+        if(us.idExists(userId) == 0)
+            return ResponseEntity.status(404).body("Cat owner " + userId + " doesn't exist!");
+        else{
+            a = cs.addCat(userId, a);
+            String jsonResponse = mp.writeValueAsString(a);
+            return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
+        }
+
     }
 
 

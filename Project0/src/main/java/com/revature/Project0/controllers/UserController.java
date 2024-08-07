@@ -1,9 +1,9 @@
 package com.revature.Project0.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.revature.Project0.models.Cat;
 import com.revature.Project0.models.User;
-import com.revature.Project0.services.CatService;
-import com.revature.Project0.services.UserService;
+import com.revature.Project0.services.UserServiceImpl;
 import com.revature.Project0.util.TokenStore;
 import com.revature.Project0.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +19,12 @@ import java.util.Map;
 @RequestMapping("/users")
 @CrossOrigin
 public class UserController {
-    UserService us;
-
+    UserServiceImpl us;
+    ObjectMapper mp;
     @Autowired
-    public UserController(UserService us, CatService cs) {
+    public UserController(UserServiceImpl us, ObjectMapper mp) {
         this.us = us;
+        this.mp = mp;
     }
 
     @Autowired
@@ -33,10 +34,16 @@ public class UserController {
     private TokenStore tokenStore;
 
     @PostMapping("/signup")
-    public ResponseEntity<User> createUser(@RequestBody User u) {
-        u = us.signup(u);
+    public ResponseEntity<String> createUser(@RequestBody User u) {
         // todo: handle edge cases such as password length, etc.
-        return new ResponseEntity<>(u, HttpStatus.OK);
+        if(us.usernameExists(u.getUsername()) == 1)
+            return new ResponseEntity<>("User Already Exists!!!", HttpStatus.NOT_ACCEPTABLE);
+        else{
+            u = us.signup(u);
+            return u != null
+                    ? new ResponseEntity<>("Account Created!", HttpStatus.OK)
+                    : new ResponseEntity<>("Please ensure that your password is longer than 4 characters AND your username is longer than 0!", HttpStatus.NOT_ACCEPTABLE);
+        }
     }
 
     @PostMapping("/login")

@@ -19,12 +19,20 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User signup(User u) {
-        return ur.save(u);
+        if(ur.userExists(u.getUsername()) == 0 && u.getPassword().length() > 4 && !u.getUsername().isEmpty()) {
+            return ur.save(u);
+        }
+        else
+            return null;
     }
 
     @Override
     public Optional<User> login(User u) {
-        return ur.findByUsernameAndPassword(u.getUsername(), u.getPassword());
+        if(!u.getUsername().isEmpty() && u.getPassword().length() > 4) {
+            return ur.findByUsernameAndPassword(u.getUsername(), u.getPassword());
+        }
+        else
+            return Optional.empty();
     }
 
     @Override
@@ -40,5 +48,12 @@ public class UserServiceImpl implements UserService{
     @Override
     public Optional<User> getUser(int user_id) {
         return ur.findById(user_id);
+    }
+
+    public Integer usernameExists(String username){
+        return ur.userExists(username);
+    }
+    public Integer idExists(Integer user_id){
+        return ur.idExists(user_id);
     }
 }
